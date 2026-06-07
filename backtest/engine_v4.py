@@ -1912,6 +1912,141 @@ def run_test(params_overrides: dict, max_assets: int, report_name: str):
     return s
 
 
+def run_test_with_weekly(params_overrides: dict, max_assets: int, report_name: str,
+                         initial_deposit: float = 100.0):
+    """
+    Запустить тест + трек понедельного PnL для DCA-анализа.
+    Каждую неделю (по понедельникам UTC) фиксирует equity.
+    """
+    import time, json
+    from datetime import datetime, timezone, timedelta
+    from pathlib import Path
+    import glob
+
+    params = BacktestParams()
+    for k, v in params_overrides.items():
+        if hasattr(params, k):
+            setattr(params, k, v)
+    params.deposit = initial_deposit
+
+    print(f"\n{'='*60}")
+    print(f"  TEST: {report_name} (weekly tracking)")
+    print(f"  Initial deposit: ${initial_deposit}")
+    print(f"{'='*60}")
+
+    files = glob.glob(str(Path(__file__).parent / "data" / "*_1h.pkl"))
+    cached = sorted(set(f.replace('_1h.pkl','').split('/')[-1] for f in files))
+    selected = cached[:max_assets]
+
+    t0 = time.time()
+    runner = BacktestRunner(params=params, assets=selected)
+    runner.load_btc_data()
+    runner.run(max_assets=len(selected))
+
+    trades = runner.results["trades"]
+    if not trades:
+        print("❌ No trades.")
+        return None
+
+    # Сортируем сделки по времени
+    trades_sorted = sorted(trades, key=lambda t: t["signal_ts"])
+
+    # Определяем недельные границы
+    start_ts = trades_sorted[0]["signal_ts"]
+    end_ts = trades_sorted[-1]["signal_ts"]
+
+    start_dt = datetime.fromtimestamp(start_ts / 1000, tz=timezone.utc)
+    end_dt = datetime.fromtimestamp(end_ts / 1000, tz=timezone.utc)
+
+    # Находим первый понедельник
+    current = start_dt
+    while current.weekday() != 0:  # Monday
+        current += timedelta(days=1)
+    week_start = current.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    # Трекинг
+    equity = initial_deposit
+    peak = equity
+    max_dd_pct = 0
+    trade_idx = 0
+    total_trades = len(trades_sorted)
+
+    print(f"\n{'='*90}")
+    print(f"  ПОНЕДЕЛЬНЫЙ РОСТ ЭКВИТИ (начало: ${initial_deposit:.0f})")
+    print(f"  Период: {start_dt.strftime('%Y-%m-%d')} → {end_dt.strftime('%Y-%m-%d')}")
+    print(f"  Всего сделок: {total_trades}")
+    print(f"{'='*90}")
+    print(f"{'Неделя':<22} {'Дата':<14} {'Сделок':>8} {'Equity':>12} {'PnL нед':>10} {'PnL всего':>12} {'ДД':>8}")
+    print(f"{'-'*90}")
+
+    weekly_rows = []
+    week_num = 0
+    week_pnl = 0.0
+    week_trades = 0
+    start_equity = initial_deposit
+
+    while week_start <= end_dt:
+        week_end = week_start + timedelta(days=7)
+        week_start_ms = int(week_start.timestamp() * 1000)
+        week_end_ms = int(week_end.timestamp() * 1000)
+
+        # Собираем сделки за эту неделю
+        week_trades = 0
+        week_pnl = 0.0
+        while trade_idx < total_trades and trades_sorted[trade_idx]["signal_ts"] < week_end_ms:
+            t = trades_sorted[trade_idx]
+            equity += t["total_pnl_usdt"]
+            week_pnl += t["total_pnl_usdt"]
+            week_trades += 1
+            trade_idx += 1
+
+        if equity > peak:
+            peak = equity
+        dd = (peak - equity) / peak * 100 if peak > 0 else 0
+        if dd > max_dd_pct:
+            max_dd_pct = dd
+
+        weekly_rows.append({
+            "week": week_num,
+            "date": week_start.strftime("%Y-%m-%d"),
+            "trades": week_trades,
+            "equity": round(equity, 2),
+            "week_pnl": round(week_pnl, 2),
+            "total_pnl": round(equity - initial_deposit, 2),
+            "dd": round(dd, 2),
+        })
+
+        print(f"W{week_num:<5} {week_start.strftime('%Y-%m-%d'):<14} {week_trades:>8} ${equity:>8,.2f} {week_pnl:>+9,.2f} ${equity-initial_deposit:>8,.2f} {dd:>6.1f}%")
+
+        week_num += 1
+        week_start = week_end
+
+    elapsed = time.time() - t0
+    print(f"{'='*90}")
+    print(f"  ИТОГО: ${equity:,.2f} | PnL: ${equity-initial_deposit:,.2f} | Max ДД: {max_dd_pct:.1f}% | Сделок: {total_trades}")
+    print(f"  Время: {elapsed/60:.1f} мин | Ростов: {((equity/initial_deposit)-1)*100:.1f}%")
+    print(f"{'='*90}")
+
+    # Сохраняем
+    report_path = Path(__file__).parent / "reports" / f"{report_name}.json"
+    report_path.parent.mkdir(exist_ok=True)
+    s = runner.summary(verbose=True)
+    data = {
+        "test_name": report_name,
+        "params": {k: getattr(params, k) for k in dir(params) if not k.startswith('_') and not callable(getattr(params, k))},
+        "summary": s,
+        "weekly": weekly_rows,
+        "trades_count": total_trades,
+        "elapsed_sec": round(elapsed, 1),
+        "engine_version": "v4",
+    }
+    with open(report_path, "w") as f:
+        json.dump(data, f, indent=2, default=str)
+    print(f"💾 Weekly data saved: {report_path}")
+
+    return s
+
+
 if __name__ == "__main__":
     # ── Запуск тестов ──
     print("""
