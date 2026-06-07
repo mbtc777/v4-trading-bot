@@ -1,0 +1,162 @@
+{
+  "test_name": "v4_filt_all",
+  "params": {
+    "sl_atr_mult": 2.0,
+    "sl_fallback_pct": 2.0,
+    "max_sl_pct": 8.0,
+    "tp_count": 3,
+    "tp_first_rr": 0.6,
+    "impulse_enabled": false,
+    "impulse_max_body_ratio": 1.2,
+    "impulse_max_deviation": 0.5,
+    "impulse_max_slope": 0.15,
+    "impulse_lookback": 4,
+    "rsi_long_min": 40.0,
+    "rsi_short_max": 60.0,
+    "use_btc_phase": true,
+    "use_dd_filter": true,
+    "dd_threshold": 10000000,
+    "min_volume_24h": 20000000,
+    "deposit": 10000,
+    "timeout_bars": 48,
+    "max_deposit_risk_pct": 0.8,
+    "global_stop_loss_pct": 2.4,
+    "max_drawdown_pct": 50.0,
+    "commission_maker": 0.0002,
+    "commission_taker": 0.0004,
+    "avg_enabled": false,
+    "avg_risk_per_level": 1.5,
+    "avg_incremental_pct": 2.0,
+    "avg_max_increments": 50,
+    "avg_min_move_pct": 0.5,
+    "avg_use_delta_delta": true,
+    "avg_only_if_profit_others": true,
+    "pyramiding_enabled": true,
+    "pyramiding_trigger_pct": 2.0,
+    "pyramiding_size_pct": 0.15,
+    "pyramiding_max_count": 7,
+    "pyramiding_only_trailing_profit": true,
+    "pyramiding_use_dd": true,
+    "pyramiding_dd_lookback": 5,
+    "pyramiding_dd_min_ratio": 1.2,
+    "pyramiding_volume_ratio": 1.0,
+    "pyramiding_trailing_mode": "step",
+    "pyramiding_trailing_step_pct": 3.0,
+    "pyramiding_trailing_alloc_pct": 0.25,
+    "pyramiding_trailing_buffer_steps": 1,
+    "pyramiding_global_breakeven": true,
+    "use_asset_dd_filter": true,
+    "asset_dd_threshold": 500000,
+    "enable_per_asset_optimization": false,
+    "pre_trade_backtest_filter": false,
+    "pre_trade_min_pnl": 0,
+    "pre_trade_min_winrate": 50.0,
+    "anti_stophunting_filter": true,
+    "anti_stophunting_tail_threshold": 2.5,
+    "anti_stophunting_lookback": 20,
+    "anti_stophunting_max_anomalies": 2,
+    "asset_atr_filter": true,
+    "asset_atr_multiplier": 3.0,
+    "skip_accumulation": true,
+    "volatility_filter_enabled": true
+  },
+  "summary": {
+    "total_trades": 7707,
+    "total_pnl": 166455.03,
+    "win_rate": 53.3,
+    "wins": 4107,
+    "losses": 3600,
+    "avg_pnl": 21.6,
+    "max_win": 1764.06,
+    "max_loss": -270.05,
+    "max_drawdown_pct": 8.03,
+    "exit_reasons": {
+      "all_TP_hit": 2206,
+      "SL": 3387,
+      "trailing_tp": 1622,
+      "timeout": 447,
+      "end_of_data": 44,
+      "breakeven_stop": 1
+    },
+    "filters": {
+      "volume_blocked": 65,
+      "total_signals": 25642,
+      "trades_opened": 7734,
+      "phase_blocked": 12495,
+      "accumulation_blocked": 2377,
+      "dd_blocked": 1630,
+      "asset_dd_blocked": 1012,
+      "rsi_blocked": 387,
+      "atr_blocked": 7
+    },
+    "phases": {
+      "unknown": {
+        "trades": 218,
+        "wins": 150,
+        "losses": 68,
+        "pnl_usdt": 24385.15
+      },
+      "Markdown": {
+        "trades": 3506,
+        "wins": 1996,
+        "losses": 1510,
+        "pnl_usdt": 87189.35000000191
+      },
+      "Distribution": {
+        "trades": 1619,
+        "wins": 875,
+        "losses": 744,
+        "pnl_usdt": 58582.71000000072
+      },
+      "Markup": {
+        "trades": 2364,
+        "wins": 1086,
+        "losses": 1278,
+        "pnl_usdt": -3702.1800000000208
+      }
+    },
+    "subtypes": {
+      "unknown": {
+        "trades": 218,
+        "wins": 150,
+        "losses": 68,
+        "pnl_usdt": 24385.15
+      },
+      "gradual_decline": {
+        "trades": 3467,
+        "wins": 1960,
+        "losses": 1507,
+        "pnl_usdt": 82721.06000000185
+      },
+      "normal_distribution": {
+        "trades": 1619,
+        "wins": 875,
+        "losses": 744,
+        "pnl_usdt": 58582.71000000072
+      },
+      "normal_markdown": {
+        "trades": 39,
+        "wins": 36,
+        "losses": 3,
+        "pnl_usdt": 4468.290000000001
+      },
+      "gradual_trend": {
+        "trades": 2364,
+        "wins": 1086,
+        "losses": 1278,
+        "pnl_usdt": -3702.1800000000208
+      }
+    },
+    "avg_stats": {
+      "trades_with_avg": 0,
+      "total_avgs": 0,
+      "trades_with_pyra": 2546,
+      "total_pyras": 5363
+    },
+    "global_stop_hit": 0,
+    "max_drawdown_hit": 0
+  },
+  "trades_count": 7707,
+  "elapsed_sec": 44.6,
+  "engine_version": "v4"
+}
